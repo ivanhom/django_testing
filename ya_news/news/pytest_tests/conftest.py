@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta
+from datetime import date, timedelta
 from time import sleep
 
 from django.urls import reverse
@@ -61,8 +61,8 @@ def comment_id_for_args(comment):
 
 @pytest.fixture
 def couple_of_news():
-    today = datetime.today()
-    News.objects.bulk_create(
+    today = date.today()
+    couple_of_news = News.objects.bulk_create(
         News(
             title=f'Новость {index}',
             text='Просто текст',
@@ -70,15 +70,18 @@ def couple_of_news():
         )
         for index in range(settings.NEWS_COUNT_ON_HOME_PAGE + 1)
     )
+    return couple_of_news
 
 
 @pytest.fixture
-def couple_comments(news, user):
+def couple_of_comments(news, user):
+    couple_of_comments = []
     for index in range(3):
-        Comment.objects.create(
+        couple_of_comments.append(Comment.objects.create(
             news=news, author=user, text=f'Tекст №{index}'
-        )
+        ))
         sleep(0.000001)
+    return couple_of_comments
 
 
 @pytest.fixture

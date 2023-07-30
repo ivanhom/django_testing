@@ -1,25 +1,17 @@
 from http import HTTPStatus
 
-from django.urls import reverse
 from pytest_django.asserts import assertRedirects
 import pytest
 
 
 @pytest.mark.django_db
 @pytest.mark.parametrize(
-    'name, args',
-    (
-        ('news:home', None),
-        ('news:detail', pytest.lazy_fixture('news_id_for_args')),
-        ('users:login', None),
-        ('users:logout', None),
-        ('users:signup', None)
-    ),
+    'name',
+    ('/', '/news/1/', '/auth/login/', '/auth/logout/', '/auth/signup/')
 )
-def test_pages_availability_for_anonymous_user(args, client, name):
+def test_pages_availability_for_anonymous_user(client, name, news):
     """Проверка доступа к URL адресам анонимного пользователя."""
-    url = reverse(name, args=args)
-    response = client.get(url)
+    response = client.get(name)
     assert response.status_code == HTTPStatus.OK
 
 
@@ -32,15 +24,15 @@ def test_pages_availability_for_anonymous_user(args, client, name):
 )
 @pytest.mark.parametrize(
     'name',
-    ('news:edit', 'news:delete'),
+    ('/edit_comment/', '/delete_comment/'),
 )
 def test_pages_availability_for_comment_edit_and_delete(
-    parametrized_client, comment_id_for_args, expected_status, name
+    parametrized_client, comment, expected_status, name
 ):
     """Проверка доступа к редактированию и удалению комментария
     автором и проверка запрета доступа другому пользователю.
     """
-    url = reverse(name, args=comment_id_for_args)
+    url = f'{name}{comment.id}/'
     response = parametrized_client.get(url)
     assert response.status_code == expected_status
 
@@ -48,14 +40,14 @@ def test_pages_availability_for_comment_edit_and_delete(
 @pytest.mark.django_db
 @pytest.mark.parametrize(
     'name',
-    ('news:edit', 'news:delete'),
+    ('/edit_comment/', '/delete_comment/'),
 )
-def test_redirect_for_anonymous_user(client, comment_id_for_args, name):
+def test_redirect_for_anonymous_user(client, comment, name):
     """Проверка переадресации закрытых для
     анонимного пользователя URL адресов.
     """
-    login_url = reverse('users:login')
-    url = reverse(name, args=comment_id_for_args)
+    login_url = '/auth/login/'
+    url = f'{name}{comment.id}/'
     expected_url = f'{login_url}?next={url}'
     response = client.get(url)
     assertRedirects(response, expected_url)

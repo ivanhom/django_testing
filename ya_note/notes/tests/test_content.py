@@ -20,14 +20,12 @@ class TestContent(TestCase):
             slug='the_slug',
             author=cls.user
         )
-        cls.list_url = reverse('notes:list')
-        cls.add_url = reverse('notes:add')
-        cls.edit_url = reverse('notes:edit', args=(cls.note.slug,))
 
     def test_note_availability_in_list_different_users(self):
         """Проверка отображения созданной заметки в
         списке заметок только у автора заметки.
         """
+        list_url = reverse('notes:list')
         users_check = (
             (self.user, self.assertIn),
             (self.anoter_user, self.assertNotIn),
@@ -35,7 +33,7 @@ class TestContent(TestCase):
         for user, check in users_check:
             self.client.force_login(user)
             with self.subTest(user=user, check=check):
-                response = self.client.get(self.list_url)
+                response = self.client.get(list_url)
                 object_list = response.context['object_list']
                 check(self.note, object_list)
 
@@ -43,8 +41,10 @@ class TestContent(TestCase):
         """Проверка наличия форм на страницах
         создания и редактирования заметки.
         """
+        add_url = reverse('notes:add')
+        edit_url = reverse('notes:edit', args=(self.note.slug,))
         self.client.force_login(self.user)
-        for url in (self.add_url, self.edit_url):
+        for url in (add_url, edit_url):
             with self.subTest(url=url):
                 response = self.client.get(url)
                 self.assertIn('form', response.context)

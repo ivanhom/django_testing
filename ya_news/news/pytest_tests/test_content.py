@@ -1,5 +1,6 @@
 import pytest
 
+from news.models import Comment, News
 from yanews import settings
 
 
@@ -19,20 +20,24 @@ def test_news_order(client, couple_of_news, home_url):
     """
     response = client.get(home_url)
     object_list = response.context['object_list']
+    object_list_from_db = News.objects.all().order_by('-date')
     all_dates = [news.date for news in object_list]
-    sorted_dates = sorted(all_dates, reverse=True)
-    assert all_dates == sorted_dates
+    all_dates_from_db = [news.date for news in object_list_from_db]
+    assert all_dates == all_dates_from_db[:settings.NEWS_COUNT_ON_HOME_PAGE]
 
 
 @pytest.mark.django_db
-def test_comments_order(client, couple_comments, news, news_detail_url):
+def test_comments_order(client, couple_of_comments, news, news_detail_url):
     """Комментарии на странице отдельной новости отсортированы в
     хронологическом порядке: старые в начале списка, новые — в конце.
     """
     response = client.get(news_detail_url)
     assert 'news' in response.context
     all_comments = news.comment_set.all()
-    assert all_comments[0].created < all_comments[1].created
+    all_comments_from_db = Comment.objects.all().order_by('created')
+    all_dates = [comment.created for comment in all_comments]
+    all_dates_from_db = [comment.created for comment in all_comments_from_db]
+    assert all_dates == all_dates_from_db
 
 
 @pytest.mark.django_db
