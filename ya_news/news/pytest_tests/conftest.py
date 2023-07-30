@@ -45,6 +45,11 @@ def news_id_for_args(news):
 
 
 @pytest.fixture
+def news_id_for_url(news):
+    return f'{news.id}/'
+
+
+@pytest.fixture
 def comment(news, user):
     comment = Comment.objects.create(
         news=news,

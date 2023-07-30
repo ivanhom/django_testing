@@ -6,12 +6,19 @@ import pytest
 
 @pytest.mark.django_db
 @pytest.mark.parametrize(
-    'name',
-    ('/', '/news/1/', '/auth/login/', '/auth/logout/', '/auth/signup/')
+    'name, args',
+    (
+        ('/', ''),
+        ('/news/', pytest.lazy_fixture('news_id_for_url')),
+        ('/auth/login/', ''),
+        ('/auth/logout/', ''),
+        ('/auth/signup/', '')
+    ),
 )
-def test_pages_availability_for_anonymous_user(client, name, news):
+def test_pages_availability_for_anonymous_user(args, client, name, news):
     """Проверка доступа к URL адресам анонимного пользователя."""
-    response = client.get(name)
+    url = name + args
+    response = client.get(url)
     assert response.status_code == HTTPStatus.OK
 
 
