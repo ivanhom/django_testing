@@ -1,7 +1,7 @@
-from datetime import date, timedelta
 from time import sleep
 
 from django.urls import reverse
+from django.utils import timezone
 import pytest
 
 from news.models import Comment, News
@@ -66,12 +66,12 @@ def comment_id_for_args(comment):
 
 @pytest.fixture
 def couple_of_news():
-    today = date.today()
+    today = timezone.now()
     couple_of_news = News.objects.bulk_create(
         News(
             title=f'Новость {index}',
             text='Просто текст',
-            date=today - timedelta(days=index)
+            date=today - timezone.timedelta(days=index)
         )
         for index in range(settings.NEWS_COUNT_ON_HOME_PAGE + 1)
     )
@@ -99,6 +99,12 @@ def form_data():
 @pytest.fixture
 def home_url():
     url = reverse('news:home')
+    return url
+
+
+@pytest.fixture
+def login_url():
+    url = reverse('users:login')
     return url
 
 
